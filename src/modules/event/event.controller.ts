@@ -90,6 +90,9 @@ export class EventController {
     @Request() req,
     @Param('invite_token') invite_token: string,
   ): Promise<any> {
-    return await this.eventService.validateInviteToken(req.user, invite_token);
+    return await this.eventService.validateInviteToken(
+      +req.user.user_id,
+      invite_token,
+    );
   }
 }

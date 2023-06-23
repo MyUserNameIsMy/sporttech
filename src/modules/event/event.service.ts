@@ -93,13 +93,28 @@ export class EventService {
     return { invite_token: invite_token };
   }
 
-  async validateInviteToken(user: any, invite_token: string) {
+  async validateInviteToken(
+    user_id: number,
+    invite_token: string,
+  ): Promise<{ message: string }> {
     try {
       await this.jwtService.verifyAsync(invite_token);
     } catch (err) {
       throw new BadRequestException({ description: 'Invalid Token' });
     }
-    const token_data = await this.jwtService.decode(invite_token);
-    return token_data;
+
+    const token_data: any = this.jwtService.decode(invite_token);
+
+    if (user_id === token_data.who_invited) return { message: 'Success' };
+
+    const user_role = new UserRoleEntity();
+    user_role.event = await this.findOne(token_data?.event_id);
+    user_role.user = await UserEntity.findOne({ where: { id: user_id } });
+    try {
+      await user_role.save();
+      return { message: 'Success' };
+    } catch (err) {
+      throw new BadRequestException('Join Problem');
+    }
   }
 }

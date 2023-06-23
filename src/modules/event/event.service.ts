@@ -13,7 +13,7 @@ export class EventService {
   async create(
     eventDto: CreateEventRequestDto,
     user_id: number,
-  ): Promise<EventEntity> {
+  ): Promise<{ message: string }> {
     const event = new EventEntity();
     event.name = eventDto.name;
     event.code = generateUniqueString();
@@ -37,7 +37,7 @@ export class EventService {
       throw new BadRequestException(err.message);
     }
 
-    return event;
+    return { message: 'Success' };
   }
 
   async findAllLogged(user_id: number): Promise<EventEntity[]> {
@@ -88,5 +88,15 @@ export class EventService {
       },
     );
     return { invite_token: invite_token };
+  }
+
+  async validateInviteToken(user: any, invite_token: string) {
+    try {
+      await this.jwtService.verifyAsync(invite_token);
+    } catch (err) {
+      throw new BadRequestException({ description: 'Invalid Token' });
+    }
+    const token_data = await this.jwtService.decode(invite_token);
+    return token_data;
   }
 }

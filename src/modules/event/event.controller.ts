@@ -27,7 +27,7 @@ export class EventController {
   async registerSuperAdmin(
     @Request() req,
     @Body() eventCreateRequestDto: CreateEventRequestDto,
-  ): Promise<any> {
+  ): Promise<{ message: string }> {
     return await this.eventService.create(
       eventCreateRequestDto,
       +req.user.user_id,
@@ -81,5 +81,15 @@ export class EventController {
     @Param('event_id') event_id: number,
   ): Promise<{ invite_token: string }> {
     return await this.eventService.generateInviteToken(req.user, event_id);
+  }
+
+  @UseGuards(AuthGuard('jwt-user'))
+  @ApiBearerAuth()
+  @Get('validate-invite-token/:invite_token')
+  async validateInviteToken(
+    @Request() req,
+    @Param('invite_token') invite_token: string,
+  ): Promise<any> {
+    return await this.eventService.validateInviteToken(req.user, invite_token);
   }
 }

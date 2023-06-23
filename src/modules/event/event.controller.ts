@@ -61,7 +61,7 @@ export class EventController {
     return await this.eventService.findAllByRole(+req.user.user_id, role);
   }
 
-  @RoleDecorator(RoleEnum.PARTICIPANT)
+  @RoleDecorator(RoleEnum.ORGANIZATOR, RoleEnum.PARTICIPANT)
   @UseGuards(RoleGuard)
   @ApiBearerAuth()
   @Get(':event_id')

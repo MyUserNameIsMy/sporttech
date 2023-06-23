@@ -34,19 +34,19 @@ export class EventController {
     );
   }
 
-  @Get()
-  async findAll(): Promise<EventEntity[]> {
-    return await this.eventService.findAll();
-  }
+  // @Get()
+  // async findAll(): Promise<EventEntity[]> {
+  //   return await this.eventService.findAll();
+  // }
 
-  @Get(':event_id')
-  async findOne(@Param('event_id') event_id: number): Promise<EventEntity> {
-    return await this.eventService.findOne(event_id);
-  }
+  // @Get(':event_id')
+  // async findOne(@Param('event_id') event_id: number): Promise<EventEntity> {
+  //   return await this.eventService.findOne(event_id);
+  // }
 
   @UseGuards(AuthGuard('jwt-user'))
   @ApiBearerAuth()
-  @Get('logged')
+  @Get()
   async findAllLogged(@Request() req): Promise<EventEntity[]> {
     return await this.eventService.findAllLogged(+req.user.user_id);
   }
@@ -64,7 +64,7 @@ export class EventController {
   @RoleDecorator(RoleEnum.PARTICIPANT)
   @UseGuards(RoleGuard)
   @ApiBearerAuth()
-  @Get('logged/:event_id')
+  @Get(':event_id')
   async findOneLogged(
     @Request() req,
     @Param('event_id') event_id: number,

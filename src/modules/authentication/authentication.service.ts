@@ -55,6 +55,37 @@ export class AuthenticationService {
     };
   }
 
+  async refreshToken(user: any): Promise<{ access_token: string }> {
+    const users_roles = await UserRoleEntity.find({
+      relations: ['user', 'event'],
+      where: {
+        user: {
+          id: user.user_id,
+        },
+      },
+    });
+    console.log(users_roles);
+    return {
+      access_token: this.jwtService.sign(
+        {
+          user_id: user.user_id,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          events: users_roles.map((item) => {
+            return {
+              role: item.role,
+              event_id: item.event.id,
+            };
+          }),
+        },
+        {
+          expiresIn: '3d',
+        },
+      ),
+    };
+  }
+
   async registerUser(
     userDto: RegisterUserRequestDto,
   ): Promise<{ access_token: string }> {

@@ -6,7 +6,7 @@ import {
 import { UserEntity } from '../user/entities/user.entity';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { UserRegisterRequestDto } from './dto/user-register.request.dto';
+import { RegisterUserRequestDto } from './dto/register-user.request.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -40,7 +40,7 @@ export class AuthenticationService {
   }
 
   async registerUser(
-    userDto: UserRegisterRequestDto,
+    userDto: RegisterUserRequestDto,
   ): Promise<{ access_token: string }> {
     const user = new UserEntity();
     user.firstname = userDto.firstname;

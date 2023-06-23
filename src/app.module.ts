@@ -4,6 +4,7 @@ import { AuthenticationModule } from './modules/authentication/authentication.mo
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrmAsyncConfig } from './config/orm-async.config';
+import { EventModule } from './modules/event/event.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { OrmAsyncConfig } from './config/orm-async.config';
     TypeOrmModule.forRootAsync(OrmAsyncConfig),
     UserModule,
     AuthenticationModule,
+    EventModule,
   ],
   controllers: [],
   providers: [],

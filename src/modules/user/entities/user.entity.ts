@@ -1,6 +1,7 @@
-import { BeforeInsert, Column, Entity } from 'typeorm';
+import { BeforeInsert, Column, Entity, OneToMany } from 'typeorm';
 import { RootAbstractEntity } from '../../../database/entities/root-abstract.entity';
 import * as bcrypt from 'bcrypt';
+import { UserRoleEntity } from './user-role.entity';
 
 @Entity('users')
 export class UserEntity extends RootAbstractEntity {
@@ -19,6 +20,9 @@ export class UserEntity extends RootAbstractEntity {
     select: false,
   })
   password: string;
+
+  @OneToMany(() => UserRoleEntity, (user_role) => user_role.event)
+  users_roles: UserRoleEntity[];
 
   @BeforeInsert()
   async setPassword(password: string) {

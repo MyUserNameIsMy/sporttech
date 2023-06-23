@@ -5,9 +5,11 @@ import { generateUniqueString } from '../../common/utils/event-code.util';
 import { UserRoleEntity } from '../user/entities/user-role.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class EventService {
+  constructor(private readonly jwtService: JwtService) {}
   async create(
     eventDto: CreateEventRequestDto,
     user_id: number,
@@ -38,7 +40,7 @@ export class EventService {
     return event;
   }
 
-  async findAll(user_id: number): Promise<EventEntity[]> {
+  async findAllLogged(user_id: number): Promise<EventEntity[]> {
     return await EventEntity.find({
       relations: ['users_roles'],
       where: {
@@ -51,6 +53,9 @@ export class EventService {
     });
   }
 
+  async findAll(): Promise<EventEntity[]> {
+    return await EventEntity.find();
+  }
   async findAllByRole(user_id: number, role: RoleEnum): Promise<EventEntity[]> {
     return await EventEntity.find({
       relations: ['users_roles'],
@@ -63,5 +68,25 @@ export class EventService {
         },
       },
     });
+  }
+
+  async findOne(event_id: number): Promise<EventEntity> {
+    return await EventEntity.findOne({ where: { id: event_id } });
+  }
+
+  async generateInviteToken(
+    user: any,
+    event_id: number,
+  ): Promise<{ invite_token: string }> {
+    const invite_token = this.jwtService.sign(
+      {
+        who_invited: user.user_id,
+        event_id: event_id,
+      },
+      {
+        expiresIn: '1d',
+      },
+    );
+    return { invite_token: invite_token };
   }
 }

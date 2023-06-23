@@ -13,6 +13,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateEventRequestDto } from './dto/create-event.request.dto';
 import { EventEntity } from './entities/event.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
+import { RoleGuard } from '../authentication/guards/role.guard';
+import { RoleDecorator } from '../../common/decorators/role.decorator';
 
 @ApiTags('Event')
 @Controller('event')
@@ -32,11 +34,21 @@ export class EventController {
     );
   }
 
+  @Get()
+  async findAll(): Promise<EventEntity[]> {
+    return await this.eventService.findAll();
+  }
+
+  @Get(':event_id')
+  async findOne(@Param('event_id') event_id: number): Promise<EventEntity> {
+    return await this.eventService.findOne(event_id);
+  }
+
   @UseGuards(AuthGuard('jwt-user'))
   @ApiBearerAuth()
-  @Get()
-  async findAll(@Request() req): Promise<EventEntity[]> {
-    return await this.eventService.findAll(+req.user.user_id);
+  @Get('logged')
+  async findAllLogged(@Request() req): Promise<EventEntity[]> {
+    return await this.eventService.findAllLogged(+req.user.user_id);
   }
 
   @UseGuards(AuthGuard('jwt-user'))
@@ -47,5 +59,27 @@ export class EventController {
     @Param('role') role: RoleEnum,
   ): Promise<EventEntity[]> {
     return await this.eventService.findAllByRole(+req.user.user_id, role);
+  }
+
+  @RoleDecorator(RoleEnum.PARTICIPANT)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Get('logged/:event_id')
+  async findOneLogged(
+    @Request() req,
+    @Param('event_id') event_id: number,
+  ): Promise<EventEntity> {
+    return await this.eventService.findOne(event_id);
+  }
+
+  @RoleDecorator(RoleEnum.ORGANIZATOR)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Get('generate-invite-token/:event_id')
+  async generateInviteToken(
+    @Request() req,
+    @Param('event_id') event_id: number,
+  ): Promise<{ invite_token: string }> {
+    return await this.eventService.generateInviteToken(req.user, event_id);
   }
 }

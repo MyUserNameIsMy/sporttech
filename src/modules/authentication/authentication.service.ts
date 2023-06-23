@@ -7,6 +7,7 @@ import { UserEntity } from '../user/entities/user.entity';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterUserRequestDto } from './dto/register-user.request.dto';
+import { UserRoleEntity } from '../user/entities/user-role.entity';
 
 @Injectable()
 export class AuthenticationService {
@@ -24,6 +25,15 @@ export class AuthenticationService {
   }
 
   async generateToken(user: UserEntity): Promise<{ access_token: string }> {
+    const users_roles = await UserRoleEntity.find({
+      relations: ['user', 'event'],
+      where: {
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    console.log(users_roles);
     return {
       access_token: this.jwtService.sign(
         {
@@ -31,6 +41,12 @@ export class AuthenticationService {
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
+          events: users_roles.map((item) => {
+            return {
+              role: item.role,
+              event_id: item.event.id,
+            };
+          }),
         },
         {
           expiresIn: '3d',

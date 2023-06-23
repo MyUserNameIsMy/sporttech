@@ -13,6 +13,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class RoleGuard extends AuthGuard('jwt-user') implements CanActivate {
   roles: RoleEnum[] = [];
+  event_id: number;
   constructor(private reflector: Reflector) {
     super();
   }
@@ -25,8 +26,9 @@ export class RoleGuard extends AuthGuard('jwt-user') implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (requiredRoles) {
+    if (requiredRoles && context.switchToHttp().getRequest().params?.event_id) {
       this.roles = requiredRoles;
+      this.event_id = context.switchToHttp().getRequest().params?.event_id;
     }
 
     return super.canActivate(context);
@@ -39,8 +41,14 @@ export class RoleGuard extends AuthGuard('jwt-user') implements CanActivate {
 
     console.log(this.roles);
 
-    if (this.roles?.includes(user.role)) {
-      throw new ForbiddenException('no role');
+    if (this.roles) {
+      if (!user.events) throw new ForbiddenException('No events');
+      const user_roles = user.events
+        .filter((item) => item.event_id == this.event_id)
+        .map((item) => item.role);
+      console.log(user_roles);
+      if (!user_roles.some((item) => this.roles.includes(item)))
+        throw new ForbiddenException('no role');
     }
 
     return user;

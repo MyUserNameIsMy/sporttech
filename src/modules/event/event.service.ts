@@ -43,6 +43,7 @@ export class EventService {
   async findAllLogged(user_id: number): Promise<EventEntity[]> {
     return await EventEntity.find({
       relations: ['users_roles'],
+      select: ['id', 'name', 'code', 'place', 'time_and_date', 'expenditure'],
       where: {
         users_roles: {
           user: {
@@ -57,7 +58,7 @@ export class EventService {
     return await EventEntity.find();
   }
   async findAllByRole(user_id: number, role: RoleEnum): Promise<EventEntity[]> {
-    return await EventEntity.find({
+    const events = await EventEntity.find({
       relations: ['users_roles'],
       where: {
         users_roles: {
@@ -68,6 +69,8 @@ export class EventService {
         },
       },
     });
+    events.forEach((item) => delete item.users_roles);
+    return events;
   }
 
   async findOne(event_id: number): Promise<EventEntity> {

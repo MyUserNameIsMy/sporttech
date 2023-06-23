@@ -8,7 +8,6 @@ export class RegisterUserRequestDto {
     example: 'Olzhas',
   })
   @IsNotEmpty()
-  @IsEmail()
   firstname: string;
 
   @ApiProperty({
@@ -16,7 +15,6 @@ export class RegisterUserRequestDto {
     example: 'Syran',
   })
   @IsNotEmpty()
-  @IsEmail()
   lastname: string;
 
   @ApiProperty({

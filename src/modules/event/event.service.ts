@@ -6,6 +6,7 @@ import { UserRoleEntity } from '../user/entities/user-role.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
 import { JwtService } from '@nestjs/jwt';
+import { BankAccountEntity } from '../bank/entities/bank-account.entity';
 
 @Injectable()
 export class EventService {
@@ -20,7 +21,27 @@ export class EventService {
     event.time_and_date = eventDto.time_and_date;
     event.place = eventDto.place;
     event.expenditure = eventDto.expenditure;
+    event.total_expenditure = eventDto.expenditure.reduce(
+      (accumulator, item) => accumulator + item.cost,
+      0,
+    );
+
     try {
+      await event.save();
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
+
+    const bank_account = new BankAccountEntity();
+    bank_account.value = 0;
+    try {
+      await bank_account.save();
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
+
+    try {
+      event.bank_account = bank_account;
       await event.save();
     } catch (err) {
       throw new BadRequestException(err.message);
@@ -41,9 +62,17 @@ export class EventService {
   }
 
   async findAllLogged(user_id: number): Promise<EventEntity[]> {
-    return await EventEntity.find({
-      relations: ['users_roles'],
-      select: ['id', 'name', 'code', 'place', 'time_and_date', 'expenditure'],
+    const events = await EventEntity.find({
+      relations: ['users_roles', 'bank_account'],
+      select: [
+        'id',
+        'name',
+        'code',
+        'place',
+        'time_and_date',
+        'expenditure',
+        'total_expenditure',
+      ],
       where: {
         users_roles: {
           user: {
@@ -52,14 +81,18 @@ export class EventService {
         },
       },
     });
+    events.forEach((item) => delete item.users_roles);
+    return events;
   }
 
   async findAll(): Promise<EventEntity[]> {
-    return await EventEntity.find();
+    return await EventEntity.find({
+      relations: ['bank_account'],
+    });
   }
   async findAllByRole(user_id: number, role: RoleEnum): Promise<EventEntity[]> {
     const events = await EventEntity.find({
-      relations: ['users_roles'],
+      relations: ['users_roles', 'bank_account'],
       where: {
         users_roles: {
           user: {
@@ -74,7 +107,23 @@ export class EventService {
   }
 
   async findOne(event_id: number): Promise<EventEntity> {
-    return await EventEntity.findOne({ where: { id: event_id } });
+    const event = await EventEntity.findOne({
+      relations: ['users_roles', 'bank_account', 'users_roles.user'],
+      where: { id: event_id },
+    });
+    event['participants'] = event.users_roles.map((item) => {
+      return {
+        participant_id: item.user.id,
+        participant_role: item.role,
+        participant_email: item.user.email,
+        participant_firstname: item.user.firstname,
+        participant_lastname: item.user.lastname,
+      };
+    });
+
+    delete event.users_roles;
+
+    return event;
   }
 
   async generateInviteToken(

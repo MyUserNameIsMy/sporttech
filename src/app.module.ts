@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrmAsyncConfig } from './config/orm-async.config';
 import { EventModule } from './modules/event/event.module';
+import { BankModule } from './modules/bank/bank.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { EventModule } from './modules/event/event.module';
     UserModule,
     AuthenticationModule,
     EventModule,
+    BankModule,
   ],
   controllers: [],
   providers: [],

@@ -7,6 +7,7 @@ import { UserEntity } from '../user/entities/user.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
 import { JwtService } from '@nestjs/jwt';
 import { BankAccountEntity } from '../bank/entities/bank-account.entity';
+import { EventStatusEnum } from '../../common/enums/event-status.enum';
 
 @Injectable()
 export class EventService {
@@ -118,6 +119,7 @@ export class EventService {
         participant_email: item.user.email,
         participant_firstname: item.user.firstname,
         participant_lastname: item.user.lastname,
+        participant_is_paid: item.is_paid,
       };
     });
 
@@ -164,6 +166,16 @@ export class EventService {
       return { message: 'Success' };
     } catch (err) {
       throw new BadRequestException('Join Problem');
+    }
+  }
+
+  async changeStatus(event_id: number, event_status: EventStatusEnum) {
+    const event = await this.findOne(event_id);
+    event.event_status = event_status;
+    try {
+      await event.save();
+    } catch (err) {
+      throw new BadRequestException(err.message);
     }
   }
 }

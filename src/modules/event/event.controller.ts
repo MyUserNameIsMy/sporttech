@@ -15,6 +15,8 @@ import { EventEntity } from './entities/event.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
 import { RoleGuard } from '../authentication/guards/role.guard';
 import { RoleDecorator } from '../../common/decorators/role.decorator';
+import { EventStatusEnum } from '../../common/enums/event-status.enum';
+import { ChangeEventStatusRequestDto } from './dto/change-event-status.request.dto';
 
 @ApiTags('Event')
 @Controller('event')
@@ -81,6 +83,18 @@ export class EventController {
     @Param('event_id') event_id: number,
   ): Promise<{ invite_token: string }> {
     return await this.eventService.generateInviteToken(req.user, event_id);
+  }
+
+  @RoleDecorator(RoleEnum.ORGANIZATOR)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Post('change-event-status/:event_id')
+  async changeStatus(
+    @Request() req,
+    @Param('event_id') event_id: number,
+    @Body() eventStatusDto: ChangeEventStatusRequestDto,
+  ) {
+    await this.eventService.changeStatus(event_id, eventStatusDto.event_status);
   }
 
   @UseGuards(AuthGuard('jwt-user'))

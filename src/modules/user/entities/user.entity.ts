@@ -1,8 +1,16 @@
-import { BeforeInsert, Column, Entity, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { RootAbstractEntity } from '../../../database/entities/root-abstract.entity';
 import * as bcrypt from 'bcrypt';
 import { UserRoleEntity } from './user-role.entity';
 import { TransactionEntity } from '../../bank/entities/transaction.entity';
+import { BankAccountEntity } from '../../bank/entities/bank-account.entity';
 
 @Entity('users')
 export class UserEntity extends RootAbstractEntity {
@@ -27,6 +35,10 @@ export class UserEntity extends RootAbstractEntity {
 
   @OneToMany(() => TransactionEntity, (transaction) => transaction.user)
   transactions: TransactionEntity[];
+
+  @OneToOne(() => BankAccountEntity, { onUpdate: 'CASCADE' })
+  @JoinColumn()
+  bank_account: BankAccountEntity;
 
   // @OneToMany(
   //   () => InvitationEntity,

@@ -8,12 +8,14 @@ import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterUserRequestDto } from './dto/register-user.request.dto';
 import { UserRoleEntity } from '../user/entities/user-role.entity';
+import { BankAccountEntity } from '../bank/entities/bank-account.entity';
 
 @Injectable()
 export class AuthenticationService {
   constructor(private readonly jwtService: JwtService) {}
   async validate(username: string, password: string): Promise<UserEntity> {
     const user = await UserEntity.findOne({
+      relations: ['bank_account'],
       where: { email: username },
       select: ['id', 'email', 'password', 'firstname', 'lastname'],
     });
@@ -41,6 +43,7 @@ export class AuthenticationService {
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
+          bank_account: user.bank_account,
           events: users_roles.map((item) => {
             return {
               role: item.role,
@@ -72,6 +75,7 @@ export class AuthenticationService {
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
+          bank_account: user.bank_account,
           events: users_roles.map((item) => {
             return {
               role: item.role,
@@ -95,7 +99,11 @@ export class AuthenticationService {
     user.email = userDto.email;
     user.password = userDto.password;
 
+    const bank_account = new BankAccountEntity();
+    bank_account.value = 0;
     try {
+      await bank_account.save();
+      user.bank_account = bank_account;
       await user.save();
       return this.generateToken(user);
     } catch (err) {

@@ -19,4 +19,7 @@ export class UserRoleEntity extends RootAbstractEntity {
     default: RoleEnum.PARTICIPANT,
   })
   role: RoleEnum;
+
+  @Column({ type: 'boolean', default: false })
+  is_paid: boolean;
 }

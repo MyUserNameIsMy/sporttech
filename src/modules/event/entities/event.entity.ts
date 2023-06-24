@@ -3,6 +3,7 @@ import { RootAbstractEntity } from '../../../database/entities/root-abstract.ent
 import { UserRoleEntity } from '../../user/entities/user-role.entity';
 import { ExpenditureType } from '../types/expenditure.type';
 import { BankAccountEntity } from '../../bank/entities/bank-account.entity';
+import { EventStatusEnum } from '../../../common/enums/event-status.enum';
 
 @Entity('events')
 export class EventEntity extends RootAbstractEntity {
@@ -27,6 +28,13 @@ export class EventEntity extends RootAbstractEntity {
 
   @Column({ type: 'float' })
   total_expenditure: number;
+
+  @Column({
+    type: 'enum',
+    enum: EventStatusEnum,
+    default: EventStatusEnum.CREATED,
+  })
+  event_status: EventStatusEnum;
 
   @OneToMany(() => UserRoleEntity, (user_role) => user_role.event)
   users_roles: UserRoleEntity[];

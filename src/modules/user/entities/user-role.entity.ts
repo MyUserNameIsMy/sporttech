@@ -10,7 +10,9 @@ export class UserRoleEntity extends RootAbstractEntity {
   @ManyToOne(() => UserEntity, (user) => user.users_roles)
   user: UserEntity;
 
-  @ManyToOne(() => EventEntity, (event) => event.users_roles)
+  @ManyToOne(() => EventEntity, (event) => event.users_roles, {
+    onDelete: 'CASCADE',
+  })
   event: EventEntity;
 
   @Column({

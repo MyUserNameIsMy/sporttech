@@ -23,7 +23,7 @@ export class AuthenticationController {
   @ApiBearerAuth()
   @Post('refresh')
   async refresh(@Request() req: any): Promise<{ access_token: string }> {
-    return this.authService.refreshToken(req.user);
+    return this.authService.refreshToken(+req.user.user_id);
   }
 
   @Post('register')

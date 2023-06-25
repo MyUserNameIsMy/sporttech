@@ -11,11 +11,12 @@ import { UserRoleEntity } from '../user/entities/user-role.entity';
 @Injectable()
 export class BankService {
   async makeDepositBankAccount(
+    user_id: number,
     transactionInDto: CreateTransactionInRequestDto,
   ): Promise<{ message: string }> {
     const user = await UserEntity.findOne({
       relations: ['bank_account'],
-      where: { id: transactionInDto.user_id },
+      where: { id: user_id },
     });
     const event = await EventEntity.findOne({
       relations: ['bank_account'],

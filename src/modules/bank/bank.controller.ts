@@ -1,18 +1,30 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Request,
+  Controller,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { BankService } from './bank.service';
 import { CreateTransactionInRequestDto } from './dto/create-transaction-in.request.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Bank')
 @Controller('bank')
 export class BankController {
   constructor(private readonly bankService: BankService) {}
 
+  @UseGuards(AuthGuard('jwt-user'))
+  @ApiBearerAuth()
   @Post('pay')
   async makeDepositBankAccount(
+    @Request() req,
     @Body() createTransactionInRequest: CreateTransactionInRequestDto,
   ): Promise<{ message: string }> {
     return await this.bankService.makeDepositBankAccount(
+      +req.user.user_id,
       createTransactionInRequest,
     );
   }

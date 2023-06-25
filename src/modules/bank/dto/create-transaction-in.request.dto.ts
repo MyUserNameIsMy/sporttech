@@ -9,13 +9,6 @@ export class CreateTransactionInRequestDto {
   event_id: number;
 
   @ApiProperty({
-    description: 'The ID of the user associated with the transaction.',
-    example: 1,
-  })
-  @IsNumber()
-  user_id: number;
-
-  @ApiProperty({
     description: 'The value of the transaction.',
     minimum: 0,
     example: 100.5,

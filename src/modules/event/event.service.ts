@@ -142,7 +142,7 @@ export class EventService {
         participant_payment_value: payment_value,
       };
     });
-
+    event['payment_value'] = payment_value;
     delete event.users_roles;
 
     return event;

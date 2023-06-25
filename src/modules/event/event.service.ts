@@ -12,6 +12,24 @@ import { EventStatusEnum } from '../../common/enums/event-status.enum';
 @Injectable()
 export class EventService {
   constructor(private readonly jwtService: JwtService) {}
+  async exit(user_id: number, event_id: number): Promise<{ message: string }> {
+    const user_role = await UserRoleEntity.findOne({
+      relations: ['event', 'user'],
+      where: {
+        event: {
+          id: event_id,
+        },
+        user: {
+          id: user_id,
+        },
+      },
+    });
+
+    try {
+      await user_role.remove();
+    } catch (err) {}
+    return { message: 'Success' };
+  }
   async create(
     eventDto: CreateEventRequestDto,
     user_id: number,

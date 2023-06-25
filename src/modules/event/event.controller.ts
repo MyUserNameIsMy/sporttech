@@ -15,7 +15,6 @@ import { EventEntity } from './entities/event.entity';
 import { RoleEnum } from '../../common/enums/role.enum';
 import { RoleGuard } from '../authentication/guards/role.guard';
 import { RoleDecorator } from '../../common/decorators/role.decorator';
-import { EventStatusEnum } from '../../common/enums/event-status.enum';
 import { ChangeEventStatusRequestDto } from './dto/change-event-status.request.dto';
 
 @ApiTags('Event')
@@ -74,15 +73,14 @@ export class EventController {
     return await this.eventService.findOne(event_id);
   }
 
-  @RoleDecorator(RoleEnum.ORGANIZATOR)
-  @UseGuards(RoleGuard)
+  @UseGuards(AuthGuard('jwt-user'))
   @ApiBearerAuth()
-  @Get('generate-invite-token/:event_id')
-  async generateInviteToken(
+  @Post('exit/:event_id')
+  async exit(
     @Request() req,
     @Param('event_id') event_id: number,
-  ): Promise<{ invite_token: string }> {
-    return await this.eventService.generateInviteToken(req.user, event_id);
+  ): Promise<{ message: string }> {
+    return await this.eventService.exit(+req.user.user_id, event_id);
   }
 
   @RoleDecorator(RoleEnum.ORGANIZATOR)
@@ -95,6 +93,17 @@ export class EventController {
     @Body() eventStatusDto: ChangeEventStatusRequestDto,
   ) {
     await this.eventService.changeStatus(event_id, eventStatusDto.event_status);
+  }
+
+  @RoleDecorator(RoleEnum.ORGANIZATOR)
+  @UseGuards(RoleGuard)
+  @ApiBearerAuth()
+  @Get('generate-invite-token/:event_id')
+  async generateInviteToken(
+    @Request() req,
+    @Param('event_id') event_id: number,
+  ): Promise<{ invite_token: string }> {
+    return await this.eventService.generateInviteToken(req.user, event_id);
   }
 
   @UseGuards(AuthGuard('jwt-user'))

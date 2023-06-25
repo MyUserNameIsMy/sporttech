@@ -91,8 +91,11 @@ export class EventController {
     @Request() req,
     @Param('event_id') event_id: number,
     @Body() eventStatusDto: ChangeEventStatusRequestDto,
-  ) {
-    await this.eventService.changeStatus(event_id, eventStatusDto.event_status);
+  ): Promise<{ message: string }> {
+    return await this.eventService.changeStatus(
+      event_id,
+      eventStatusDto.event_status,
+    );
   }
 
   @RoleDecorator(RoleEnum.ORGANIZATOR)

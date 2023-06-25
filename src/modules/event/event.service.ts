@@ -189,7 +189,10 @@ export class EventService {
     }
   }
 
-  async changeStatus(event_id: number, event_status: EventStatusEnum) {
+  async changeStatus(
+    event_id: number,
+    event_status: EventStatusEnum,
+  ): Promise<{ message: string }> {
     const event = await this.findOne(event_id);
     event.event_status = event_status;
     try {
@@ -197,5 +200,6 @@ export class EventService {
     } catch (err) {
       throw new BadRequestException(err.message);
     }
+    return { message: 'Success' };
   }
 }

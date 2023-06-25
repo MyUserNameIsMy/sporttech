@@ -58,20 +58,23 @@ export class AuthenticationService {
     };
   }
 
-  async refreshToken(user: any): Promise<{ access_token: string }> {
+  async refreshToken(user_id: number): Promise<{ access_token: string }> {
     const users_roles = await UserRoleEntity.find({
       relations: ['user', 'event'],
       where: {
         user: {
-          id: user.user_id,
+          id: user_id,
         },
       },
     });
-    console.log(users_roles);
+    const user = await UserEntity.findOne({
+      relations: ['bank_account'],
+      where: { id: user_id },
+    });
     return {
       access_token: this.jwtService.sign(
         {
-          user_id: user.user_id,
+          user_id: user.id,
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,

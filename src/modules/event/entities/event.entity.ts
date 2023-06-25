@@ -36,7 +36,9 @@ export class EventEntity extends RootAbstractEntity {
   })
   event_status: EventStatusEnum;
 
-  @OneToMany(() => UserRoleEntity, (user_role) => user_role.event)
+  @OneToMany(() => UserRoleEntity, (user_role) => user_role.event, {
+    onDelete: 'CASCADE',
+  })
   users_roles: UserRoleEntity[];
 
   // @OneToMany(() => InvitationEntity, (user_invitation) => user_invitation.event)

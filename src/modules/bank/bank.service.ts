@@ -7,6 +7,8 @@ import { OperationEnum } from '../../common/enums/operation.enum';
 import { EventEntity } from '../event/entities/event.entity';
 import { use } from 'passport';
 import { UserRoleEntity } from '../user/entities/user-role.entity';
+import { find } from 'rxjs';
+import { In } from 'typeorm';
 
 @Injectable()
 export class BankService {
@@ -91,6 +93,70 @@ export class BankService {
   }
 
   async returnMoney(event_id: number): Promise<{ message: string }> {
+    const event = await EventEntity.findOne({
+      relations: ['users_roles', 'users_roles.user', 'bank_account'],
+      where: {
+        id: event_id,
+        users_roles: {
+          is_paid: true,
+        },
+      },
+    });
+    const user_ids = event.users_roles.map((item) => item.user.id);
+    console.log(user_ids);
+
+    for (const user_id of user_ids) {
+      const user = await UserEntity.findOne({
+        relations: ['bank_account'],
+        where: { id: user_id },
+      });
+      console.log(user);
+      const transaction = await TransactionEntity.findOne({
+        relations: ['bank_account'],
+        where: {
+          bank_account: {
+            id: event.bank_account.id,
+          },
+          user: {
+            id: user.id,
+          },
+        },
+      });
+
+      const user_bank_account = await BankAccountEntity.findOne({
+        where: {
+          id: user.bank_account.id,
+        },
+      });
+
+      const bank_account = await BankAccountEntity.findOne({
+        where: {
+          id: event.bank_account.id,
+        },
+      });
+      user_bank_account.value += transaction.value;
+      bank_account.value -= transaction.value;
+
+      await user_bank_account.save();
+      await bank_account.save();
+      await user.save();
+    }
+
+    const users_roles = await UserRoleEntity.find({
+      relations: ['event', 'user'],
+      where: {
+        event: {
+          id: event.id,
+        },
+        user: {
+          id: In(user_ids),
+        },
+      },
+    });
+    if (users_roles) await UserRoleEntity.remove(users_roles);
+
+    await event.remove();
+
     return { message: 'Success' };
   }
 }

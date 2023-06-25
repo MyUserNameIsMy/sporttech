@@ -8,7 +8,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class BankController {
   constructor(private readonly bankService: BankService) {}
 
-  @Post()
+  @Post('pay')
   async makeDepositBankAccount(
     @Body() createTransactionInRequest: CreateTransactionInRequestDto,
   ): Promise<{ message: string }> {

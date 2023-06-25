@@ -4,6 +4,9 @@ import { TransactionEntity } from './entities/transaction.entity';
 import { BankAccountEntity } from './entities/bank-account.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { OperationEnum } from '../../common/enums/operation.enum';
+import { EventEntity } from '../event/entities/event.entity';
+import { use } from 'passport';
+import { UserRoleEntity } from '../user/entities/user-role.entity';
 
 @Injectable()
 export class BankService {
@@ -14,33 +17,53 @@ export class BankService {
       relations: ['bank_account'],
       where: { id: transactionInDto.user_id },
     });
+    const event = await EventEntity.findOne({
+      relations: ['bank_account'],
+      where: { id: transactionInDto.event_id },
+    });
+
+    if (user.bank_account.value - transactionInDto.value < 0)
+      throw new BadRequestException('Not enough money');
 
     const user_bank_account = await BankAccountEntity.findOne({
-      where: { id: user.bank_account.id },
+      where: {
+        id: user.bank_account.id,
+      },
     });
 
-    if (user_bank_account.value - transactionInDto.value < 0)
-      throw new BadRequestException('Not enough money');
-    const transaction = new TransactionEntity();
     const bank_account = await BankAccountEntity.findOne({
-      where: { id: transactionInDto.bank_account_id },
+      where: {
+        id: event.bank_account.id,
+      },
     });
-    transaction.bank_account = bank_account;
+    user_bank_account.value -= transactionInDto.value;
+    bank_account.value += transactionInDto.value;
+
+    const transaction = new TransactionEntity();
+    transaction.bank_account = event.bank_account;
+    transaction.user = user;
     transaction.operation_type = OperationEnum.IN;
     transaction.value = transactionInDto.value;
 
+    const user_role = await UserRoleEntity.findOne({
+      relations: ['event', 'user'],
+      where: {
+        event: { id: event.id },
+        user: { id: user.id },
+      },
+    });
+    user_role.is_paid = true;
+
     try {
-      user_bank_account.value -= transaction.value;
+      await user_role.save();
       await user_bank_account.save();
-      user.bank_account = user_bank_account;
-      await user.save();
-      await transaction.save();
-      bank_account.value += transaction.value;
       await bank_account.save();
+      await user.save();
+      await event.save();
+      await transaction.save();
     } catch (err) {
       throw new BadRequestException(err.message);
     }
-
     return { message: 'Success' };
   }
 

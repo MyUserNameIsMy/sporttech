@@ -112,6 +112,7 @@ export class EventService {
       relations: ['users_roles', 'bank_account', 'users_roles.user'],
       where: { id: event_id },
     });
+    const payment_value = event.total_expenditure / event.users_roles.length;
     event['participants'] = event.users_roles.map((item) => {
       return {
         participant_id: item.user.id,
@@ -120,6 +121,7 @@ export class EventService {
         participant_firstname: item.user.firstname,
         participant_lastname: item.user.lastname,
         participant_is_paid: item.is_paid,
+        participant_payment_value: payment_value,
       };
     });
 
